@@ -19,7 +19,7 @@ Workflow:
        python3 idm-check-dates.py restore fix_rollback_<attr>_<ts>.json
 
 Rules (hardcoded in check_dates()):
-    - Attribute missing/empty          → MISSING (not invalid)
+    - Attribute missing/empty          → OK (nothing to check)
     - Entry without DATE_FIELD         → skipped
     - ANY date value fails             → user is INVALID (strict)
     - Date must match mm-dd-yyyy AND be a real calendar date
@@ -65,7 +65,7 @@ MM_DD_YYYY_RE = re.compile(r"^\d{2}-\d{2}-\d{4}$")
 def check_dates(attr_value):
     """Return (status, detail) per the rules in the module docstring."""
     if not attr_value:
-        return ("MISSING", "no {} attribute".format(ATTRIBUTE))
+        return ("OK", "no {} attribute — nothing to check".format(ATTRIBUTE))
 
     bad = []
     checked = 0
@@ -85,7 +85,7 @@ def check_dates(attr_value):
     if bad:
         return ("INVALID", "bad {}: {}".format(DATE_FIELD, ", ".join(bad)))
     if checked == 0:
-        return ("MISSING", "{} has entries but none contain {}".format(ATTRIBUTE, DATE_FIELD))
+        return ("OK", "no {} entries with {} — nothing to check".format(ATTRIBUTE, DATE_FIELD))
     return ("OK", "{} {} value(s) valid".format(checked, DATE_FIELD))
 
 
@@ -268,7 +268,7 @@ def cmd_check(_args):
     print("=" * 60)
     print("")
 
-    counts = {"OK": 0, "INVALID": 0, "MISSING": 0, "ERROR": 0}
+    counts = {"OK": 0, "INVALID": 0, "ERROR": 0}
     non_ok = []
 
     for i, (_line_num, user_id) in enumerate(user_entries, 1):
@@ -300,7 +300,7 @@ def cmd_check(_args):
     print("=" * 60)
     print("  Summary")
     print("=" * 60)
-    for k in ("OK", "INVALID", "MISSING", "ERROR"):
+    for k in ("OK", "INVALID", "ERROR"):
         print("  {:<9} {}".format(k + ":", counts.get(k, 0)))
     print("=" * 60)
 
